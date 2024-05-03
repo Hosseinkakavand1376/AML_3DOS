@@ -5,13 +5,13 @@ echo "Downloading data in ${data_dir}"
 
 # for AML-DAAI student - you shouldn't need this, skip the download
 # # sncore
-printf "============"
-echo "Downloading ShapeNetCore resampled in $dir"
-sncore="https://www.dropbox.com/s/oa3qbujpugw4d43/sncore_fps_4096.tar?dl=1"
-wget -O "${data_dir}/tmp_sncore_fps_4096.tar" "$sncore"  # download
-tar -xf "${data_dir}/tmp_sncore_fps_4096.tar" -C "$data_dir"  # extract
-rm "${data_dir}/tmp_sncore_fps_4096.tar" # clean
-printf "============\n"
+# printf "============"
+# echo "Downloading ShapeNetCore resampled in $dir"
+# sncore="https://www.dropbox.com/s/oa3qbujpugw4d43/sncore_fps_4096.tar?dl=1"
+# wget -O "${data_dir}/tmp_sncore_fps_4096.tar" "$sncore"  # download
+# tar -xf "${data_dir}/tmp_sncore_fps_4096.tar" -C "$data_dir"  # extract
+# rm "${data_dir}/tmp_sncore_fps_4096.tar" # clean
+# printf "============\n"
 
 
 # md40 + ood splits
@@ -36,13 +36,13 @@ printf "============\n"
 
 # for AML-DAAI student - you shouldn't need this, skip the download
 # # md40 corruputed
-printf "============"
-echo "Downloading ModelNet40 with corruptions in $dir"
-md40_corruptions="https://www.dropbox.com/s/28u4swbyyn3wflz/ModelNet40_corrupted.tar?dl=1"
-wget -O "${data_dir}/tmp_ModelNet40_corrupted.tar" "$md40_corruptions"  # download
-tar -xf "${data_dir}/tmp_ModelNet40_corrupted.tar" -C "$data_dir"  # extract
-rm "${data_dir}/tmp_ModelNet40_corrupted.tar" # clean
-printf "============\n"
+# printf "============"
+# echo "Downloading ModelNet40 with corruptions in $dir"
+# md40_corruptions="https://www.dropbox.com/s/28u4swbyyn3wflz/ModelNet40_corrupted.tar?dl=1"
+# wget -O "${data_dir}/tmp_ModelNet40_corrupted.tar" "$md40_corruptions"  # download
+# tar -xf "${data_dir}/tmp_ModelNet40_corrupted.tar" -C "$data_dir"  # extract
+# rm "${data_dir}/tmp_ModelNet40_corrupted.tar" # clean
+# printf "============\n"
 
 
 echo "Finished"
