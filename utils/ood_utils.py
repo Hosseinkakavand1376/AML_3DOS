@@ -151,7 +151,6 @@ def get_network_output(model, loader, softmax=True):
     all_logits = []
     all_pred = []
     all_labels = []
-    all_points = [] # by edo
     model.eval()
     for i, batch in enumerate(tqdm(loader, disable=DISABLE_TQDM), 0):
         points, labels = batch[0], batch[1]
@@ -168,12 +167,10 @@ def get_network_output(model, loader, softmax=True):
         _, pred = logits.data.max(1)
         all_pred.append(pred)
         all_labels.append(labels)
-        all_points.append(points) # by edo
     all_logits = torch.cat(all_logits, dim=0)
     all_pred = torch.cat(all_pred, dim=0)
     all_labels = torch.cat(all_labels, dim=0)
-    all_points = torch.cat(all_points, dim=0) # by edo
-    return all_logits, all_pred, all_labels, all_points # by edo
+    return all_logits, all_pred, all_labels
 
 
 @torch.no_grad()
@@ -208,7 +205,6 @@ def get_penultimate_feats(model, loader):
     """ DDP impl """
     all_feats = []
     all_labels = []
-    all_points = [] # by edo
     model.eval()
     for i, batch in enumerate(tqdm(loader, disable=DISABLE_TQDM), 0):
         points, labels = batch[0], batch[1]
@@ -219,13 +215,11 @@ def get_penultimate_feats(model, loader):
         if is_dist() and get_ws() > 1:
             feats = gather(feats, dim=0)
             labels = gather(labels, dim=0)
-        all_points.append(points) # by edo
         all_feats.append(feats)
         all_labels.append(labels)
     all_feats = torch.cat(all_feats)
     all_labels = torch.cat(all_labels, dim=0)
-    all_points = torch.cat(all_points, dim=0) # by edo
-    return all_feats, all_labels, all_points # by edo
+    return all_feats, all_labels
 
 
 def iterate_data_odin(model, loader, epsilon=0.0, temper=1000):
@@ -423,6 +417,7 @@ def compute_sim_centroids(model, centroids, list_loaders):
 
     return list_scores
 
+
 def get_ood_metrics(src_scores, tar_scores, src_label=1):
     """
     Computes ood metrics given src_scores and tar_scores
@@ -438,250 +433,8 @@ def get_ood_metrics(src_scores, tar_scores, src_label=1):
     scores = np.concatenate([src_scores, tar_scores], axis=0)
     return calc_metrics(scores, labels)
 
-#################################### function by edo
-def failure_analysis_distance_based(tar_conf, tar_preds, tar_labels, tar_points, src_conf, method_id, val_conf, tar_train_points):
 
-  srcScore = to_numpy(src_conf)
-  valScore = to_numpy(val_conf)
-  tarScore = to_numpy(tar_conf)
-  tarPred = to_numpy(tar_preds)
-  tarLabel = to_numpy(tar_labels)
-  tarPoints = [t.cpu().numpy() for t in tar_points]
-  tarTrainPoints = tar_train_points
-
-  tar1Label_string = ["bed", "toilet", "desk", "display"]
-  tar2Label_string = ["bag","bin","box","cabinet","pillow"]
-  realLabel_string = ["chair", "shelf", "door", "sink", "sofa"]
-
-  if method_id == 8:
-    selector = 5
-  elif method_id ==10:
-    selector = 3
-
-  if selector == 1:
-    # threshold computation 1 - arbitrary value
-      threshold = 0.9
-  elif selector == 2:
-    # threshold computation 2 - average of ID scores - using whole source set
-      threshold = np.mean(srcScore)
-  elif selector == 3:
-    # threshold computation 3 - chosen so that a high fraction of ID data is correctly classified - using whole source set
-    for count in range(len(srcScore)):
-      perc = (srcScore < srcScore[count]).sum()/len(srcScore)
-      if perc < 0.15:
-        threshold = srcScore[count]
-        break
-  elif selector == 4:
-    # threshold computation 4 - chosen so that a high fraction of ID data is correctly classified - using validation set
-    for count in range(len(valScore)):
-      perc = (valScore < valScore[count]).sum()/len(valScore)
-      if perc < 0.15:
-        threshold = valScore[count]
-        break
-  elif selector == 5:
-    # threshold computation 4 - chosen so that a high fraction of ID data is correctly classified then computing the average of that portion - using validation set
-    for count in range(len(valScore)):
-      perc = (valScore < valScore[count]).sum()/len(valScore)
-      if perc < 0.15:
-        thresh = valScore[count]
-        threshold = np.mean(valScore[valScore>thresh])
-        break
-
-  print('-------------------------------')
-  print('Average score for ID samples = ', [np.mean(srcScore)])
-  print('Average score for OOD samples = ', [np.mean(tarScore)])
-  print('Threshold =', [threshold])
-  print('showing first few misclassified samples')
-
-  indeces = []
-
-  import matplotlib.pyplot as plt
-
-  for i in range(len(tarScore)):
-    if tarScore[i] > threshold:
-      indeces.append(i)
-      if i > 0 and i < 789:
-
-        print('misclassified sample, prediction:', realLabel_string[tarPred[i]], 'real label:', tar1Label_string[tarLabel[i]])
-        
-        dist = 1/tarScore[i]
-        fig = plt.figure()
-        fig.suptitle(f'prediction_{realLabel_string[tarPred[i]]}_label_{tar1Label_string[tarLabel[i]]}_distance_{dist}_{i}')
-        ax1 = fig.add_subplot(1,2,1, projection='3d')
-        temp = tarPoints[i]
-        x = [vector[0] for vector in temp]
-        y = [vector[1] for vector in temp]
-        z = [vector[2] for vector in temp],
-        ax1.view_init(-120, 20)
-        ax1.axis("off")
-        ax1.scatter(x,y,z,s=1)
-        ax1.title.set_text('OOD Pointcloud')
-        ax2 = fig.add_subplot(1,2,2, projection='3d')
-        temp = tarTrainPoints[i]
-        x = [vector[0] for vector in temp]
-        y = [vector[1] for vector in temp]
-        z = [vector[2] for vector in temp],
-        ax2.view_init(-120, 20)
-        ax2.axis("off")
-        ax2.scatter(x,y,z,s=1,color='red')
-        ax2.title.set_text('Closest training sample')
-        fig.savefig(f'/content/gdrive/MyDrive/AI project - 3D semantic novelty detection/SemNov_AML_DAAI_23-24/img_distance/euclidean/prediction_{realLabel_string[tarPred[i]]}_label_{tar1Label_string[tarLabel[i]]}_{i}.jpg')
-
-  mis_tar = len(indeces)
-  total_tar = len(tarScore)
-
-  print('misclassified OOD:', [mis_tar], 'out of', [total_tar])
-  print('-------------------------------')
-
-#################################### function by edo
-def failure_analysis_MSP(tar_conf, tar_preds, tar_labels, tar_points, src_conf, val_conf):
-    """
-    performes a failure analysis identifying the OOD that are classified
-    as ID and as what class
-    """
-    srcScore = to_numpy(src_conf)
-    valScore = to_numpy(val_conf)
-    tarScore = to_numpy(tar_conf)
-    tarPred = to_numpy(tar_preds)
-    tarLabel = to_numpy(tar_labels)
-    tarPoints = [t.cpu().numpy() for t in tar_points]
-
-    tar1Label_string = ["bed", "toilet", "desk", "display"]
-    tar2Label_string = ["bag","bin","box","cabinet","pillow"]
-    realLabel_string = ["chair", "shelf", "door", "sink", "sofa"]
-
-    indeces = []
-
-    """
-    threshold computation - different methods are used, they can be selected using the selector
-    """
-    selector = 5
-
-    if selector == 1:
-    # threshold computation 1 - arbitrary value
-      threshold = 0.9
-    elif selector == 2:
-    # threshold computation 2 - average of ID scores - using whole source set
-      threshold = np.mean(srcScore)
-    elif selector == 3:
-    # threshold computation 3 - chosen so that a high fraction of ID data is correctly classified - using whole source set
-      for count in range(len(srcScore)):
-        perc = (srcScore < srcScore[count]).sum()/len(srcScore)
-        if perc < 0.15:
-          threshold = srcScore[count]
-          break
-    elif selector == 4:
-    # threshold computation 4 - chosen so that a high fraction of ID data is correctly classified - using validation set
-      for count in range(len(valScore)):
-        perc = (valScore < valScore[count]).sum()/len(valScore)
-        if perc < 0.15:
-          threshold = valScore[count]
-          break
-    elif selector == 5:
-    # threshold computation 4 - chosen so that a high fraction of ID data is correctly classified then computing the average of that portion - using validation set
-      for count in range(len(valScore)):
-        perc = (valScore < valScore[count]).sum()/len(valScore)
-        if perc < 0.15:
-          thresh = valScore[count]
-          threshold = np.mean(valScore[valScore>thresh])
-          break
-
-    
-    print('-------------------------------')
-    print('Average score for ID samples = ', [np.mean(srcScore)])
-    print('Average score for OOD samples = ', [np.mean(tarScore)])
-    print('Threshold =', [threshold])
-    print('showing first few misclassified samples')
-
-    import matplotlib.pyplot as plt
-
-    for i in range(len(tarScore)):
-      if tarScore[i] > threshold:
-        indeces.append(i)
-        if i > 600 and i < 605:
-
-          print('misclassified sample, prediction:', realLabel_string[tarPred[i]], 'real label:', tar1Label_string[tarLabel[i]])
-          temp = tarPoints[i]
-          x = [vector[0] for vector in temp]
-          y = [vector[1] for vector in temp]
-          z = [vector[2] for vector in temp],
-
-          fig = plt.figure()
-          ax = fig.add_subplot(111, projection='3d')
-          ax.view_init(-120, 20)
-          ax.axis("off")
-          ax.scatter(x,y,z,s=1)
-          ax.title.set_text(f'prediction_{realLabel_string[tarPred[i]]}_label_{tar1Label_string[tarLabel[i]]}_confidence_{tarScore[i]}_{i}')
-          fig.savefig(f'/content/gdrive/MyDrive/AI project - 3D semantic novelty detection/SemNov_AML_DAAI_23-24/img_MSP/prediction_{realLabel_string[tarPred[i]]}_label_{tar1Label_string[tarLabel[i]]}_{i}.jpg')
-          
-
-    mis_tar = len(indeces)
-    total_tar = len(tarScore)
-
-    print('misclassified OOD:', [mis_tar], 'out of', [total_tar])
-    print('-------------------------------')
-
-#################################### function by edo
-def failure_analysis_MLS(tar_conf, tar_preds, tar_labels, tar_points, src_conf):
-    """
-    performes a failure analysis identifying the OOD that are classified
-    as ID and as what class
-    """
-    tarScore = to_numpy(tar_conf)
-    tarPred = to_numpy(tar_preds)
-    tarLabel = to_numpy(tar_labels)
-    srcScore = to_numpy(src_conf)
-    tarPoints = [t.cpu().numpy() for t in tar_points]
-
-    tar1Label_string = ["bed", "toilet", "desk", "display"]
-    tar2Label_string = ["bag","bin","box","cabinet","pillow"]
-    realLabel_string = ["chair", "shelf", "door", "sink", "sofa"]
-
-    indeces = []
-    # threshold computation - chosen so that a high fraction of ID data is correctly classified
-    for count in range(len(srcScore)):
-      perc = (srcScore < srcScore[count]).sum()/len(srcScore)
-      if perc < 0.15:
-        threshold = srcScore[count]
-        break
-
-    #threshold = np.mean(srcScore)
-    print('-------------------------------')
-    print('Average score for ID samples = ', [np.mean(srcScore)])
-    print('Average score for OOD samples = ', [np.mean(tarScore)])
-    print('Threshold =', [threshold])
-    print('showing first few misclassified samples')
-
-    import matplotlib.pyplot as plt
-
-    for i in range(len(tarScore)):
-      if tarScore[i] > threshold:
-        indeces.append(i)
-        if i > 0 and i < 15:
-
-          print('misclassified sample, prediction:', realLabel_string[tarPred[i]], 'real label:', tar1Label_string[tarLabel[i]])
-          temp = tarPoints[i]
-          x = [vector[0] for vector in temp]
-          y = [vector[1] for vector in temp]
-          z = [vector[2] for vector in temp],
-
-          fig = plt.figure()
-          ax = fig.add_subplot(111, projection='3d')
-          ax.view_init(-120, 20)
-          ax.axis("off")
-          ax.scatter(x,y,z,s=1)
-          ax.title.set_text(f'prediction_{realLabel_string[tarPred[i]]}_label_{tar1Label_string[tarLabel[i]]}_confidence_{tarScore[i]}_{i}')
-          fig.savefig(f'/content/gdrive/MyDrive/AI project - 3D semantic novelty detection/SemNov_AML_DAAI_23-24/img_MLS/prediction_{realLabel_string[tarPred[i]]}_label_{tar1Label_string[tarLabel[i]]}_{i}.jpg')
-          
-
-    mis_tar = len(indeces)
-    total_tar = len(tarScore)
-
-    print('misclassified OOD:', [mis_tar], 'out of', [total_tar])
-    print('-------------------------------')
-
-############################ modified by Edo adding the confidence and the label of the target domains
-def eval_ood_sncore(method_id, scores_list, preds_list=None, labels_list=None, points_list=None, src_label=1, silent=False):
+def eval_ood_sncore(scores_list, preds_list=None, labels_list=None, src_label=1, silent=False):
     """
     conf_list: [SRC, TAR1, TAR2]
     preds_list: [SRC, TAR1, TAR2]
@@ -701,20 +454,9 @@ def eval_ood_sncore(method_id, scores_list, preds_list=None, labels_list=None, p
     if not silent:
         print(f"AUROC - Src label: {src_label}, Tar label: {tar_label}")
 
-    if method_id == 1 or method_id == 2 or method_id == 8 or method_id == 10:
-      src_conf, src_preds, src_labels = scores_list[0], preds_list[0], labels_list[0]
-      tar1_conf, tar1_preds, tar1_labels, tar1_points = scores_list[1], preds_list[1], labels_list[1], points_list[1]
-      tar2_conf, tar2_preds, tar2_labels, tar2_points = scores_list[2], preds_list[2], labels_list[2], points_list[2]
-      if method_id == 1 or method_id == 8:
-        val_conf = scores_list[3]
-      if method_id == 8:
-        tar1_train_points = points_list[3]
-    else:
-      src_conf, src_preds, src_labels = scores_list[0], preds_list[0], labels_list[0]
-      tar1_conf, tar1_preds, tar1_labels = scores_list[1], preds_list[1], labels_list[1]
-      tar2_conf, tar2_preds, tar2_labels = scores_list[2], preds_list[2], labels_list[2]
-
-###########################################################################
+    src_conf, src_preds, src_labels = scores_list[0], preds_list[0], labels_list[0]
+    tar1_conf, _, _ = scores_list[1], preds_list[1], labels_list[1]
+    tar2_conf, _, _ = scores_list[2], preds_list[2], labels_list[2]
 
     # compute ID test accuracy
     src_acc, src_bal_acc = -1, -1
@@ -736,15 +478,6 @@ def eval_ood_sncore(method_id, scores_list, preds_list=None, labels_list=None, p
     # Src vs Tar 1 + Tar 2
     big_tar_conf = np.concatenate([to_numpy(tar1_conf), to_numpy(tar2_conf)], axis=0)
     res_big_tar = get_ood_metrics(src_conf, big_tar_conf, src_label)
-
-    if method_id == 1:
-      failure_analysis_MSP(tar1_conf, tar1_preds, tar1_labels, tar1_points, src_conf, val_conf)
-    elif method_id == 2:
-      failure_analysis_MLS(tar1_conf, tar1_preds, tar1_labels, tar1_points, src_conf)
-    elif method_id == 8:
-      print('--distance based failure analysis--')
-      failure_analysis_distance_based(tar1_conf, tar1_preds, tar1_labels, tar1_points, src_conf, method_id,val_conf,tar1_train_points)
-    
 
     # N.B. get_ood_metrics reports inverted AUPR_IN and AUPR_OUT results
     # as we use label 1 for IN-DISTRIBUTION and thus we consider it positive. 
