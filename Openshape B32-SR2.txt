@@ -1,0 +1,202 @@
+Src is SR2
+
+ScanObject - num_points: 2048, sonn_split: main_split, h5_suffix: objectdataset.h5, split: all, class_choice: {10: 0, 14: 1, 5: 2, 6: 3, 9: 2}, num samples: 788
+ScanObject - num_points: 2048, sonn_split: main_split, h5_suffix: objectdataset.h5, split: all, class_choice: {4: 0, 8: 1, 7: 2, 12: 3, 13: 4}, num samples: 1255
+ScanObject - num_points: 2048, sonn_split: main_split, h5_suffix: objectdataset.h5, split: all, class_choice: {0: 404, 1: 404, 2: 404, 3: 404, 11: 404}, num samples: 847
+dgcnn k: 20
+dgcnn emb_dims: 1024
+Clf - feature encoder: DGCNN
+Clf Head - num classes: 4, input dim: 2048, act: leakyrelu, dropout: 0.5
+Model params count: 1.8001 M
+Load weights:  <All keys matched successfully>
+Classifier(
+  (enco): DGCNN(
+    (conv1): Sequential(
+      (0): Conv2d(6, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.2)
+    )
+    (conv2): Sequential(
+      (0): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.2)
+    )
+    (conv3): Sequential(
+      (0): Conv2d(128, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.2)
+    )
+    (conv4): Sequential(
+      (0): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.2)
+    )
+    (conv5): Sequential(
+      (0): Conv1d(512, 1024, kernel_size=(1,), stride=(1,), bias=False)
+      (1): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.2)
+    )
+  )
+  (penultimate): Sequential(
+    (0): Linear(in_features=2048, out_features=512, bias=False)
+    (1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.2)
+    (3): Dropout(p=0.5, inplace=False)
+    (4): Linear(in_features=512, out_features=256, bias=False)
+  )
+  (head): Sequential(
+    (0): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (1): LeakyReLU(negative_slope=0.2)
+    (2): Dropout(p=0.5, inplace=False)
+    (3): Linear(in_features=256, out_features=4, bias=True)
+  )
+)
+  0% 0/788 [00:00<?, ?it/s]/usr/lib/python3.10/multiprocessing/popen_fork.py:66: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = os.fork()
+100% 788/788 [00:18<00:00, 43.27it/s]
+100% 1255/1255 [00:28<00:00, 43.66it/s]
+100% 847/847 [00:19<00:00, 44.12it/s]
+
+################################################################################
+Computing OOD metrics with MSP normality score...
+AUROC - Src label: 1, Tar label: 0
+Src Test - Clf Acc: 0.2296954314720812, Clf Bal Acc: 0.25
+SRC->TAR1:      AUROC: 0.4218, FPR95: 0.9745, AUPR_IN: 0.3361, AUPR_OUT: 0.5530
+SRC->TAR2:      AUROC: 0.4290, FPR95: 0.9658, AUPR_IN: 0.4309, AUPR_OUT: 0.4625
+SRC->TAR1+TAR2: AUROC: 0.4247, FPR95: 0.9710, AUPR_IN: 0.2334, AUPR_OUT: 0.6756
+to spreadsheet: 0.42182437761643776,0.9745019920318725,0.33610005391574327,0.5530463126847542,0.42897746001114717,0.9657615112160567,0.4309099495471932,0.4624656652188368,0.424706709104696,0.9709800190294957,0.23336728224257017,0.6756141669608419
+################################################################################
+
+################################################################################
+Computing OOD metrics with MLS normality score...
+AUROC - Src label: 1, Tar label: 0
+Src Test - Clf Acc: 0.2296954314720812, Clf Bal Acc: 0.25
+SRC->TAR1:      AUROC: 0.4279, FPR95: 0.9681, AUPR_IN: 0.3361, AUPR_OUT: 0.5626
+SRC->TAR2:      AUROC: 0.4292, FPR95: 0.9776, AUPR_IN: 0.4317, AUPR_OUT: 0.4616
+SRC->TAR1+TAR2: AUROC: 0.4284, FPR95: 0.9719, AUPR_IN: 0.2336, AUPR_OUT: 0.6808
+to spreadsheet: 0.4278778287863773,0.9681274900398407,0.33612323963490415,0.5626445140785792,0.4291887162214804,0.9775678866587958,0.4316525216065771,0.4616381020094401,0.4284060503170778,0.9719314938154139,0.23358874035884242,0.6808236131356724
+################################################################################
+
+################################################################################
+Computing OOD metrics with entropy normality score...
+AUROC - Src label: 1, Tar label: 0
+Src Test - Clf Acc: 0.2296954314720812, Clf Bal Acc: 0.25
+SRC->TAR1:      AUROC: 0.3859, FPR95: 0.9869, AUPR_IN: 0.3194, AUPR_OUT: 0.5275
+SRC->TAR2:      AUROC: 0.4073, FPR95: 0.9799, AUPR_IN: 0.4181, AUPR_OUT: 0.4458
+SRC->TAR1+TAR2: AUROC: 0.3946, FPR95: 0.9841, AUPR_IN: 0.2214, AUPR_OUT: 0.6543
+to spreadsheet: 0.38594454668635103,0.9869322709163346,0.31940072252506724,0.527495657854285,0.40732594585847937,0.9799291617473436,0.4181200741844855,0.44581294873975674,0.3945601723280221,0.9841103710751665,0.22143481479252147,0.6543180903820272
+################################################################################
+
+################################################################################
+Computing OOD metrics with distance from train features...
+  0% 0/1916 [00:00<?, ?it/s]/usr/local/lib/python3.10/dist-packages/torch/utils/data/dataloader.py:558: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+/usr/lib/python3.10/multiprocessing/popen_fork.py:66: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = os.fork()
+100% 1916/1916 [00:14<00:00, 131.29it/s]
+100% 788/788 [00:17<00:00, 44.24it/s]
+100% 1255/1255 [00:28<00:00, 44.20it/s]
+100% 847/847 [00:19<00:00, 44.10it/s]
+Euclidean distances in a non-normalized space:
+AUROC - Src label: 1, Tar label: 0
+Src Test - Clf Acc: 0.5076142131979695, Clf Bal Acc: 0.4936149089497695
+SRC->TAR1:      AUROC: 0.5128, FPR95: 0.9689, AUPR_IN: 0.4153, AUPR_OUT: 0.6078
+SRC->TAR2:      AUROC: 0.5622, FPR95: 0.9587, AUPR_IN: 0.5484, AUPR_OUT: 0.5455
+SRC->TAR1+TAR2: AUROC: 0.5327, FPR95: 0.9648, AUPR_IN: 0.3104, AUPR_OUT: 0.7323
+to spreadsheet: 0.5127849010051166,0.9689243027888447,0.41528815461045276,0.6077543516915502,0.5622157030786473,0.9586776859504132,0.5483742384926218,0.5454585641755452,0.532703021536173,0.9647954329210275,0.31043002828694727,0.7323234435663288
+
+Euclidean distances with prototypes:
+AUROC - Src label: 1, Tar label: 0
+Src Test - Clf Acc: 0.1713197969543147, Clf Bal Acc: 0.25
+SRC->TAR1:      AUROC: 0.5630, FPR95: 0.9458, AUPR_IN: 0.4815, AUPR_OUT: 0.6526
+SRC->TAR2:      AUROC: 0.5719, FPR95: 0.9386, AUPR_IN: 0.6010, AUPR_OUT: 0.5647
+SRC->TAR1+TAR2: AUROC: 0.5666, FPR95: 0.9429, AUPR_IN: 0.3737, AUPR_OUT: 0.7591
+to spreadsheet: 0.5630462919894028,0.9458167330677291,0.48148866930756484,0.6525745119873091,0.5719409801089543,0.9386068476977568,0.6009654767076829,0.5647478679041725,0.5666304027587938,0.9429115128449096,0.37372397735892915,0.7590612834701169
+
+Cosine similarities on the hypersphere:
+AUROC - Src label: 1, Tar label: 0
+Src Test - Clf Acc: 0.5368020304568528, Clf Bal Acc: 0.5025472488752369
+SRC->TAR1:      AUROC: 0.5288, FPR95: 0.9514, AUPR_IN: 0.4454, AUPR_OUT: 0.6246
+SRC->TAR2:      AUROC: 0.5692, FPR95: 0.9587, AUPR_IN: 0.5642, AUPR_OUT: 0.5538
+SRC->TAR1+TAR2: AUROC: 0.5451, FPR95: 0.9543, AUPR_IN: 0.3339, AUPR_OUT: 0.7432
+to spreadsheet: 0.5287570530062491,0.951394422310757,0.4453772334684319,0.6246284712744348,0.569210381220072,0.9586776859504132,0.5641607653986835,0.5538084108605361,0.5450577042893643,0.9543292102759277,0.3338966496158199,0.7432398770443364
+
+Cosine similarities with prototypes:
+AUROC - Src label: 1, Tar label: 0
+Src Test - Clf Acc: 0.1713197969543147, Clf Bal Acc: 0.25
+SRC->TAR1:      AUROC: 0.5634, FPR95: 0.9562, AUPR_IN: 0.4742, AUPR_OUT: 0.6460
+SRC->TAR2:      AUROC: 0.5838, FPR95: 0.9469, AUPR_IN: 0.6053, AUPR_OUT: 0.5688
+SRC->TAR1+TAR2: AUROC: 0.5716, FPR95: 0.9524, AUPR_IN: 0.3695, AUPR_OUT: 0.7576
+to spreadsheet: 0.5633557141990414,0.9561752988047809,0.4741765031952045,0.6460411370396179,0.58381178120449,0.9468713105076741,0.6052976114622,0.5688126409119968,0.5715984776403426,0.9524262607040913,0.3694537616606696,0.7575579681174308
+################################################################################
+
+################################################################################
+Computing OOD metrics with ODIN normality score...
+  0% 0/788 [00:00<?, ?it/s]/usr/local/lib/python3.10/dist-packages/torch/utils/data/dataloader.py:558: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+/usr/lib/python3.10/multiprocessing/popen_fork.py:66: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = os.fork()
+100% 788/788 [00:47<00:00, 16.56it/s]
+100% 1255/1255 [01:14<00:00, 16.80it/s]
+100% 847/847 [00:50<00:00, 16.70it/s]
+AUROC - Src label: 1, Tar label: 0
+SRC->TAR1:      AUROC: 0.4213, FPR95: 0.9750, AUPR_IN: 0.3355, AUPR_OUT: 0.5529
+SRC->TAR2:      AUROC: 0.4285, FPR95: 0.9660, AUPR_IN: 0.4303, AUPR_OUT: 0.4624
+SRC->TAR1+TAR2: AUROC: 0.4242, FPR95: 0.9714, AUPR_IN: 0.2329, AUPR_OUT: 0.6757
+to spreadsheet: 0.42125002527959227,0.9750374501992032,0.3354952953372587,0.5529330538774315,0.42850775205412955,0.966025974025974,0.43033047217198306,0.4624444402210424,0.42417452317589727,0.9714062797335871,0.23292131932155352,0.6757285068089076
+################################################################################
+
+################################################################################
+Computing OOD metrics with Energy normality score...
+  0% 0/788 [00:00<?, ?it/s]/usr/local/lib/python3.10/dist-packages/torch/utils/data/dataloader.py:558: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+/usr/lib/python3.10/multiprocessing/popen_fork.py:66: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = os.fork()
+100% 788/788 [00:19<00:00, 40.68it/s]
+100% 1255/1255 [00:31<00:00, 40.17it/s]
+100% 847/847 [00:20<00:00, 40.76it/s]
+AUROC - Src label: 1, Tar label: 0
+SRC->TAR1:      AUROC: 0.4657, FPR95: 0.9426, AUPR_IN: 0.3594, AUPR_OUT: 0.6010
+SRC->TAR2:      AUROC: 0.4617, FPR95: 0.9587, AUPR_IN: 0.4495, AUPR_OUT: 0.4906
+SRC->TAR1+TAR2: AUROC: 0.4641, FPR95: 0.9491, AUPR_IN: 0.2498, AUPR_OUT: 0.7116
+to spreadsheet: 0.465665257750723,0.9426294820717132,0.35938303918535774,0.6010198565888482,0.4617281656967859,0.9586776859504132,0.4495134727275911,0.49056626575367185,0.46407880819330877,0.9490960989533778,0.24975440042149638,0.7115629561221115
+################################################################################
+
+################################################################################
+Computing OOD metrics with GradNorm normality score...
+  0% 0/788 [00:00<?, ?it/s]/usr/local/lib/python3.10/dist-packages/torch/utils/data/dataloader.py:558: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+/usr/lib/python3.10/multiprocessing/popen_fork.py:66: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = os.fork()
+100% 788/788 [00:29<00:00, 27.01it/s]
+100% 1255/1255 [00:46<00:00, 26.93it/s]
+100% 847/847 [00:31<00:00, 27.21it/s]
+AUROC - Src label: 1, Tar label: 0
+SRC->TAR1:      AUROC: 0.5483, FPR95: 0.8940, AUPR_IN: 0.4092, AUPR_OUT: 0.6724
+SRC->TAR2:      AUROC: 0.5309, FPR95: 0.9067, AUPR_IN: 0.5048, AUPR_OUT: 0.5591
+SRC->TAR1+TAR2: AUROC: 0.5413, FPR95: 0.8991, AUPR_IN: 0.2920, AUPR_OUT: 0.7669
+to spreadsheet: 0.5482779541731551,0.8940239043824701,0.4092408740780624,0.6724171931399237,0.5308636333670944,0.9067296340023613,0.5048342801729638,0.559119403503824,0.5412608610605322,0.8991436726926736,0.291955532989897,0.766905058674623
+################################################################################
+
+################################################################################
+Building React validation loader...
+ModelNet40_OOD - Reading data from h5py file: ./3D_OS_release_data/modelnet40_normal_resampled/ood_sets_cache/SR2_test.h5
+ModelNet40_OOD - split: test, categories: {'bed': 0, 'toilet': 1, 'desk': 2, 'monitor': 3, 'table': 2}
+React Val - SR2 data len: 486
+/usr/local/lib/python3.10/dist-packages/torch/utils/data/dataloader.py:558: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+  0% 0/486 [00:00<?, ?it/s]/usr/lib/python3.10/multiprocessing/popen_fork.py:66: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = os.fork()
+100% 486/486 [00:05<00:00, 96.30it/s]
+t = 0.0096
+Computing OOD metrics with React (+Energy) normality score, ID-dependent threshold (=0.0096)...
+React - using SR2 test to compute threshold
+100% 788/788 [00:19<00:00, 40.58it/s]
+100% 1255/1255 [00:30<00:00, 40.80it/s]
+100% 847/847 [00:20<00:00, 40.55it/s]
+AUROC - Src label: 1, Tar label: 0
+SRC->TAR1:      AUROC: 0.3952, FPR95: 0.9522, AUPR_IN: 0.3152, AUPR_OUT: 0.5629
+SRC->TAR2:      AUROC: 0.4122, FPR95: 0.9658, AUPR_IN: 0.4147, AUPR_OUT: 0.4632
+SRC->TAR1+TAR2: AUROC: 0.4021, FPR95: 0.9577, AUPR_IN: 0.2194, AUPR_OUT: 0.6820
+to spreadsheet: 0.39517260905616114,0.952191235059761,0.31515470321761485,0.5628688492410867,0.4122440204004578,0.9657615112160567,0.4146693625012499,0.463152726044342,0.4020515269479876,0.9576593720266413,0.21938660314271485,0.6819763264889269
+################################################################################
